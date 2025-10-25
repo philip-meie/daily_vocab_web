@@ -1,30 +1,35 @@
 "use client";
-
+ 
 import { useState, useEffect, useCallback } from 'react';
 import { words } from '@/data/words';
 import { Word, Difficulty } from '@/types';
 import { scoreSentence } from '@/lib/scoring';
-
+ 
 export default function Home() {
     const [currentWord, setCurrentWord] = useState<Word | null>(null);
     const [sentence, setSentence] = useState<string>('');
     const [score, setScore] = useState<number>(0);
     const [feedbackColor, setFeedbackColor] = useState<string>('text-gray-700');
     const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
-
-    const getRandomWord = useCallback(() => {
-        const randomIndex = Math.floor(Math.random() * words.length);
-        setCurrentWord(words[randomIndex]);
+ 
+    const getRandomWord = useCallback(async () => {
+        // const randomIndex = Math.floor(Math.random() * words.length);
+        // const word = words[randomIndex];
+ 
+        const response = await fetch('/api/word');
+        const word = await response.json();
+ 
+        setCurrentWord(word.data);
         setSentence('');
         setScore(0);
         setFeedbackColor('text-gray-700');
         setIsSubmitted(false);
     }, []);
-
+ 
     useEffect(() => {
         getRandomWord();
     }, [getRandomWord]);
-
+ 
     const handleSentenceChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setSentence(e.target.value);
         // Reset score and feedback if user starts typing again after submission
@@ -34,12 +39,12 @@ export default function Home() {
             setIsSubmitted(false);
         }
     };
-
+ 
     const handleSubmitSentence = () => {
         if (currentWord) {
             const newScore = scoreSentence(currentWord.word, sentence);
             setScore(newScore);
-
+ 
             if (newScore >= 8.0) {
                 setFeedbackColor('text-success');
             } else if (newScore >= 6.0) {
@@ -47,7 +52,7 @@ export default function Home() {
             } else {
                 setFeedbackColor('text-danger');
             }
-
+ 
             const history = JSON.parse(localStorage.getItem('wordHistory') || '[]');
             history.push({
                 word: currentWord.word,
@@ -60,11 +65,11 @@ export default function Home() {
             setIsSubmitted(true);
         }
     };
-
+ 
     const handleNextWord = () => {
         getRandomWord();
     };
-
+ 
     const getDifficultyColor = (difficulty: Difficulty) => {
         switch (difficulty) {
             case "Beginner":
@@ -77,15 +82,15 @@ export default function Home() {
                 return "bg-gray-200 text-gray-800";
         }
     };
-
+ 
     if (!currentWord) {
         return <div className="flex justify-center items-center h-screen">Loading word...</div>;
     }
-
+ 
     return (
         <div className="container mx-auto p-4 max-w-3xl">
             <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-8 text-gray-800 leading-tight">Word Challenge</h1>
-
+ 
             <div className="bg-white p-8 rounded-2xl shadow-xl mb-6 border border-gray-100 transform hover:scale-105 transition-transform duration-300 ease-in-out">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
                     <h2 className="text-3xl md:text-4xl font-bold text-primary mb-2 sm:mb-0">{currentWord.word}</h2>
@@ -94,7 +99,7 @@ export default function Home() {
                     </span>
                 </div>
                 <p className="text-lg md:text-xl text-gray-700 mb-6 leading-relaxed">{currentWord.meaning}</p>
-
+ 
                 <div className="mb-6">
                     <label htmlFor="sentence" className="block text-base font-medium text-gray-700 mb-2">Your Sentence:</label>
                     <textarea
@@ -107,7 +112,7 @@ export default function Home() {
                         disabled={isSubmitted}
                     ></textarea>
                 </div>
-
+ 
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-6 space-y-4 sm:space-y-0">
                     <p className="text-2xl font-bold">Score: <span className={`${feedbackColor} transition-colors duration-300`}>{score.toFixed(1)}</span></p>
                     <div className="flex space-x-3">
@@ -133,3 +138,4 @@ export default function Home() {
         </div>
     );
 }
+ 
