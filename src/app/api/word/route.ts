@@ -11,3 +11,4 @@ export async function GET() {
   console.log("Tae was here...")
   return NextResponse.json(data);
 }
+
