@@ -8,7 +8,7 @@ export async function GET() {
   const response = await fetch('http://localhost:8000/api/word');
   console.log(response)
   const data = await response.json();
-  console.log("Tae was here...")
+  console.log("Philp was here...")
   return NextResponse.json(data);
 }
 
